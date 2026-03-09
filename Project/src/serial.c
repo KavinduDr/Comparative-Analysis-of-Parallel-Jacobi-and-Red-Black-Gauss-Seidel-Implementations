@@ -4,7 +4,7 @@
  * Solves the 2D Poisson equation on a unit square using the 5-point stencil.
  * This serves as the baseline reference for all parallel implementations.
  *
- * Usage: ./serial [grid_size] [max_iterations] [tolerance]
+ * Usage: ./serial [grid_size] [max_iterations] [tolerance] if not will run maximum of 1000 iterations
  */
 
 #include "../include/common.h"  /* Include shared utilities: grid setup, timing, error computation */
