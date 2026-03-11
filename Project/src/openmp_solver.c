@@ -1,9 +1,11 @@
 /**
- * openmp_solver.c - OpenMP implementations of Jacobi and Red-Black Gauss-Seidel
+ * openmp_solver.c
  *
- * Shared memory parallelization using OpenMP directives.
- * Parallelizes the loop iterations across threads.
+ * Parallel iterative PDE solvers using OpenMP for shared-memory systems.
+ * Implements both the Jacobi method and the Red-Black Gauss-Seidel method
+ * for solving the 2D Poisson equation on a uniform grid.
  *
+ * Compilation requires OpenMP support (e.g., gcc -fopenmp).
  * Usage: ./openmp_solver [grid_size] [max_iterations] [tolerance] [num_threads]
  */
 
