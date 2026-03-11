@@ -92,25 +92,25 @@ int redblack_gs_openmp(double *u, const double *f, int n, int max_iter, double t
     for (iter = 0; iter < max_iter; iter++) {  /* Outer iteration loop */
         double max_diff = 0.0;  /* Convergence metric: accumulated across both color phases */
 
-        /* Phase 1: Update RED points */
-        #pragma omp parallel for collapse(2) reduction(max:max_diff) schedule(static)  /* Parallelize red point updates; reduce max_diff; static scheduling */
-        for (int i = 0; i < n; i++) {  /* Loop over rows (distributed across threads) */
-            for (int j = 0; j < n; j++) {  /* Loop over columns */
-                if ((i + j) % 2 != 0) continue;  /* Skip black points: only update red points where (i+j) is even */
+        /* --- Red half-sweep: update all (i+j)-even points --- */
+        #pragma omp parallel for collapse(2) reduction(max:max_diff) schedule(static)  /* Distribute red updates; local max_diff values merged after region */
+        for (int i = 0; i < n; i++) {  /* Row index */
+            for (int j = 0; j < n; j++) {  /* Column index */
+                if ((i + j) % 2 != 0) continue;  /* Skip black-colored cells; only reds are touched here */
 
-                double left  = (j > 0)     ? u[i * n + (j - 1)] : 0.0;  /* Left neighbor (black point, not yet updated this iteration) */
-                double right = (j < n - 1) ? u[i * n + (j + 1)] : 0.0;  /* Right neighbor (black point) */
-                double up    = (i > 0)     ? u[(i - 1) * n + j]  : 0.0;  /* Upper neighbor (black point) */
-                double down  = (i < n - 1) ? u[(i + 1) * n + j]  : 0.0;  /* Lower neighbor (black point) */
+                double left  = (j > 0)     ? u[i * n + (j - 1)] : 0.0;  /* West neighbor — a black point, still at previous-iteration value */
+                double right = (j < n - 1) ? u[i * n + (j + 1)] : 0.0;  /* East neighbor — black, unchanged so far */
+                double up    = (i > 0)     ? u[(i - 1) * n + j]  : 0.0;  /* North neighbor — black */
+                double down  = (i < n - 1) ? u[(i + 1) * n + j]  : 0.0;  /* South neighbor — black */
 
-                double old_val = u[i * n + j];  /* Save current value before updating */
-                u[i * n + j] = (left + right + up + down + f[i * n + j]) / 4.0;  /* Update red point in-place */
+                double old_val = u[i * n + j];  /* Snapshot before in-place write */
+                u[i * n + j] = (left + right + up + down + f[i * n + j]) / 4.0;  /* Gauss-Seidel stencil update for this red cell */
 
-                double diff = fabs(u[i * n + j] - old_val);  /* Compute change at this red point */
-                if (diff > max_diff) max_diff = diff;  /* Update max change (thread-safe via reduction) */
+                double diff = fabs(u[i * n + j] - old_val);  /* Magnitude of change at this cell */
+                if (diff > max_diff) max_diff = diff;  /* Feed into the OpenMP max-reduction */
             }
         }
-        /* Implicit barrier here ensures all red points are updated before black phase */
+        /* OpenMP implicit barrier: all threads finish red updates before black sweep begins */
 
         /* Phase 2: Update BLACK points */
         #pragma omp parallel for collapse(2) reduction(max:max_diff) schedule(static)  /* Parallelize black point updates; reduce max_diff */
