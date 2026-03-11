@@ -9,8 +9,8 @@
  * Usage: ./openmp_solver [grid_size] [max_iterations] [tolerance] [num_threads]
  */
 
-#include "../include/common.h"  /* Include shared utilities: grid setup, timing, error computation */
-#include <omp.h>                /* OpenMP header: provides parallel directives and runtime functions */
+#include "../include/common.h"  /* Shared utilities: grid initialization, timing helpers, residual/RMSE computation */
+#include <omp.h>                /* OpenMP API: parallel regions, thread management, synchronization primitives */
 
 /**
  * OpenMP Jacobi Method
