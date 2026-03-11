@@ -163,31 +163,31 @@ int main(int argc, char *argv[]) {  /* Program entry: parse CLI args, run both s
     init_rhs(f, n);              /* Populate RHS from the chosen test problem */
     exact_solution(u_exact, n);  /* Build the closed-form reference solution */
 
-    /* ---- Jacobi ---- */
-    double t_start = get_time();  /* Record start time */
-    int jac_iters = jacobi_openmp(u_jac, f, n, max_iter, tol, num_threads);  /* Run OpenMP Jacobi solver */
-    double t_jac = get_time() - t_start;  /* Compute elapsed time */
+    /* ---- Jacobi benchmark ---- */
+    double t_start = get_time();  /* Wall-clock start for Jacobi */
+    int jac_iters = jacobi_openmp(u_jac, f, n, max_iter, tol, num_threads);  /* Execute parallel Jacobi solver */
+    double t_jac = get_time() - t_start;  /* Elapsed wall-clock time */
 
-    double res_jac  = compute_residual(u_jac, f, n);    /* Compute residual of Jacobi solution */
-    double rmse_jac = compute_rmse(u_jac, u_exact, n);  /* Compute RMSE vs exact solution */
-    print_results("Jacobi", "OpenMP", n, jac_iters, t_jac, res_jac, rmse_jac);  /* Print Jacobi results */
+    double res_jac  = compute_residual(u_jac, f, n);    /* ||Au - f||: residual norm for Jacobi */
+    double rmse_jac = compute_rmse(u_jac, u_exact, n);  /* Root-mean-square error against the analytical solution */
+    print_results("Jacobi", "OpenMP", n, jac_iters, t_jac, res_jac, rmse_jac);  /* Formatted output for Jacobi run */
 
-    /* ---- Red-Black Gauss-Seidel ---- */
-    t_start = get_time();  /* Record start time for GS */
-    int gs_iters = redblack_gs_openmp(u_gs, f, n, max_iter, tol, num_threads);  /* Run OpenMP Red-Black GS solver */
-    double t_gs = get_time() - t_start;  /* Compute elapsed time */
+    /* ---- Red-Black Gauss-Seidel benchmark ---- */
+    t_start = get_time();  /* Wall-clock start for RB-GS */
+    int gs_iters = redblack_gs_openmp(u_gs, f, n, max_iter, tol, num_threads);  /* Execute parallel RB-GS solver */
+    double t_gs = get_time() - t_start;  /* Elapsed wall-clock time */
 
-    double res_gs  = compute_residual(u_gs, f, n);    /* Compute residual of GS solution */
-    double rmse_gs = compute_rmse(u_gs, u_exact, n);  /* Compute RMSE vs exact solution */
-    print_results("Red-Black Gauss-Seidel", "OpenMP", n, gs_iters, t_gs, res_gs, rmse_gs);  /* Print GS results */
+    double res_gs  = compute_residual(u_gs, f, n);    /* ||Au - f||: residual norm for RB-GS */
+    double rmse_gs = compute_rmse(u_gs, u_exact, n);  /* RMSE against the analytical solution */
+    print_results("Red-Black Gauss-Seidel", "OpenMP", n, gs_iters, t_gs, res_gs, rmse_gs);  /* Formatted output for RB-GS run */
 
-    double rmse_jac_vs_gs = compute_rmse(u_jac, u_gs, n);  /* Compute RMSE between the two solutions */
-    printf("RMSE (Jacobi vs Red-Black GS): %.2e\n", rmse_jac_vs_gs);  /* Print comparison metric */
+    double rmse_jac_vs_gs = compute_rmse(u_jac, u_gs, n);  /* Cross-compare the two numerical solutions */
+    printf("RMSE (Jacobi vs Red-Black GS): %.2e\n", rmse_jac_vs_gs);  /* Quantify inter-solver agreement */
 
-    free(f);        /* Free RHS vector */
-    free(u_jac);    /* Free Jacobi solution */
-    free(u_gs);     /* Free GS solution */
-    free(u_exact);  /* Free exact solution */
+    free(f);        /* Release RHS memory */
+    free(u_jac);    /* Release Jacobi solution memory */
+    free(u_gs);     /* Release GS solution memory */
+    free(u_exact);  /* Release reference solution memory */
 
-    return 0;  /* Exit successfully */
+    return 0;  /* Clean exit */
 }
