@@ -43,12 +43,12 @@ int jacobi_openmp(double *u, const double *f, int n, int max_iter, double tol, i
         #pragma omp parallel for collapse(2) reduction(max:max_diff) schedule(static)  /* Flatten 2D loop; each thread accumulates a local max_diff, merged after the region */
         for (int i = 0; i < n; i++) {  /* Row index — work is split evenly (static schedule) */
             for (int j = 0; j < n; j++) {  /* Column index — also distributed thanks to collapse(2) */
-                double left  = (j > 0)     ? u_old[i * n + (j - 1)] : 0.0;  /* Left neighbor from old values (boundary = 0) */
-                double right = (j < n - 1) ? u_old[i * n + (j + 1)] : 0.0;  /* Right neighbor from old values (boundary = 0) */
-                double up    = (i > 0)     ? u_old[(i - 1) * n + j]  : 0.0;  /* Upper neighbor from old values (boundary = 0) */
-                double down  = (i < n - 1) ? u_old[(i + 1) * n + j]  : 0.0;  /* Lower neighbor from old values (boundary = 0) */
+                double left  = (j > 0)     ? u_old[i * n + (j - 1)] : 0.0;  /* West neighbor (Dirichlet zero at boundary) */
+                double right = (j < n - 1) ? u_old[i * n + (j + 1)] : 0.0;  /* East neighbor (Dirichlet zero at boundary) */
+                double up    = (i > 0)     ? u_old[(i - 1) * n + j]  : 0.0;  /* North neighbor (Dirichlet zero at boundary) */
+                double down  = (i < n - 1) ? u_old[(i + 1) * n + j]  : 0.0;  /* South neighbor (Dirichlet zero at boundary) */
 
-                u[i * n + j] = (left + right + up + down + f[i * n + j]) / 4.0;  /* Compute new value using Jacobi formula */
+                u[i * n + j] = (left + right + up + down + f[i * n + j]) / 4.0;  /* 5-point stencil average: standard Jacobi update */
 
                 double diff = fabs(u[i * n + j] - u_old[i * n + j]);  /* Absolute pointwise change between iterations */
                 if (diff > max_diff) max_diff = diff;  /* Thread-local max; OpenMP reduces all locals after the region */
