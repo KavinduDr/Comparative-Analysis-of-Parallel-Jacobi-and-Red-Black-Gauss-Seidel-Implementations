@@ -55,14 +55,14 @@ int jacobi_openmp(double *u, const double *f, int n, int max_iter, double tol, i
             }
         }
 
-        if (max_diff < tol) {  /* Check global convergence (max_diff is the reduced maximum) */
-            iter++;  /* Count this completed iteration */
-            break;   /* Convergence achieved: exit loop */
+        if (max_diff < tol) {  /* Convergence test: solution has stabilized within the specified tolerance */
+            iter++;  /* Account for the iteration that just completed */
+            break;   /* Early exit: no further sweeps needed */
         }
     }
 
-    free(u_old);   /* Free the temporary old values array */
-    return iter;   /* Return number of iterations performed */
+    free(u_old);   /* Release scratch buffer */
+    return iter;   /* Total sweeps executed (may be < max_iter if converged) */
 }
 
 /**
