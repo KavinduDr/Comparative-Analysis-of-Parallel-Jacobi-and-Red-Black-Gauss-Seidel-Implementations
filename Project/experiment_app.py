@@ -173,49 +173,115 @@ class MetricCard(tk.Canvas):
         self._paint()
 
 
+class RoundedInputBox(tk.Canvas):
+    """A rounded outline box that holds an Entry or Combobox."""
+    def __init__(self, parent, width=120, height=36, corner=8, **kw):
+        kw.setdefault("highlightthickness", 0)
+        super().__init__(parent, width=width, height=height, bg=C["card"], **kw)
+        self._corner = corner
+        self._req_width = width
+        self._req_height = height
+        self._focus = False
+        self.bind("<Configure>", self._paint)
+        self.after(10, self._paint)
+
+    def _paint(self, _evt=None):
+        w = self.winfo_width() or self._req_width
+        h = self.winfo_height() or self._req_height
+        self.delete("all")
+        outline = C["accent"] if self._focus else C["border"]
+        _round_rect(self, 1, 1, w - 2, h - 2, radius=self._corner,
+                    fill=C["input"], outline=outline, width=1)
+
+    def set_focus(self, focused):
+        self._focus = focused
+        self._paint()
+
+
 class FormGroup(tk.Frame):
-    """Vertical form field: label on top, input below."""
+    """Vertical form field: label on top, input inside a rounded box below."""
     def __init__(self, parent, label, default="", width=12, values=None, **kw):
+        # We handle width manually for the inner widget, don't pass it to Frame
+        kw.pop("width", None) 
         super().__init__(parent, bg=C["card"], **kw)
 
         tk.Label(self, text=label, font=("Inter", 10), fg=C["fg2"],
                  bg=C["card"]).pack(anchor="w", pady=(0, 4))
 
         self.var = tk.StringVar(value=str(default))
+        
+        # Fixed width calculation: 12 chars ~ 120px
+        px_width = width * 10
+        self.box = RoundedInputBox(self, width=px_width, height=36)
+        self.box.pack(fill="x", expand=True)
+        self.box.pack_propagate(False)
 
         if values:  # Combobox
-            self.widget = ttk.Combobox(self, textvariable=self.var, values=values,
+            self.widget = ttk.Combobox(self.box, textvariable=self.var, values=values,
                                        state="readonly", width=width,
                                        font=("Inter", 12))
         else:  # Entry
-            self.widget = tk.Entry(self, textvariable=self.var, width=width,
+            self.widget = tk.Entry(self.box, textvariable=self.var, width=width,
                                    font=("SF Mono", 12), bg=C["input"],
                                    fg=C["fg"], insertbackground=C["fg"],
-                                   relief="flat", highlightthickness=1,
-                                   highlightbackground=C["border"],
-                                   highlightcolor=C["accent"])
-        self.widget.pack(fill="x")
+                                   relief="flat", highlightthickness=0)
+            
+        # Place widget carefully inside the canvas
+        self.widget_win = self.box.create_window(8, 18, window=self.widget, anchor="w")
+        
+        # Focus styling
+        self.widget.bind("<FocusIn>", lambda e: self.box.set_focus(True))
+        self.widget.bind("<FocusOut>", lambda e: self.box.set_focus(False))
+        
+        # For canvas resizing
+        self.box.bind("<Configure>", self._resize, add="+")
+
+    def _resize(self, evt):
+        self.box.coords(self.widget_win, 8, evt.height // 2)
+        self.box.itemconfigure(self.widget_win, width=evt.width - 16)
 
     def get(self):
         return self.var.get()
 
 
-class RunButton(tk.Frame):
-    """Styled run button with hover effect."""
+class RunButton(tk.Canvas):
+    """Rounded run button drawn on canvas with hover effect."""
     def __init__(self, parent, text="▶  Run", command=None, **kw):
-        kw.pop("width", None)
-        kw.pop("height", None)
-        super().__init__(parent, bg=C["card"], **kw)
-        self._normal = C["accent2"]
-        self._hover = "#2ea043"
-        self._lbl = tk.Label(self, text=text, font=("Inter", 13, "bold"),
-                             fg="#ffffff", bg=self._normal,
-                             padx=22, pady=8, cursor="hand2")
-        self._lbl.pack()
-        self._lbl.bind("<Enter>", lambda e: self._lbl.config(bg=self._hover))
-        self._lbl.bind("<Leave>", lambda e: self._lbl.config(bg=self._normal))
-        if command:
-            self._lbl.bind("<Button-1>", lambda e: command())
+        w = kw.pop("width", 140)
+        h = kw.pop("height", 42)
+        kw.setdefault("highlightthickness", 0)
+        super().__init__(parent, width=w, height=h,
+                         bg=C["card"], cursor="hand2", **kw)
+        self._text = text
+        self._cmd = command
+        self._req_width = w
+        self._req_height = h
+        self._hover = False
+        self.bind("<Configure>", self._paint)
+        self.bind("<Enter>", lambda e: self._set_hover(True))
+        self.bind("<Leave>", lambda e: self._set_hover(False))
+        self.bind("<Button-1>", lambda e: self._click())
+        self.after(10, self._paint)
+
+    def _set_hover(self, val):
+        self._hover = val
+        self._paint()
+
+    def _paint(self, _evt=None):
+        w = self.winfo_width() or self._req_width
+        h = self.winfo_height() or self._req_height
+        if w < 10 or h < 10:
+            return
+        self.delete("all")
+        bg = "#2ea043" if self._hover else C["accent2"]
+        _round_rect(self, 1, 1, w - 2, h - 2, radius=8,
+                    fill=bg, outline="")
+        self.create_text(w // 2, h // 2, text=self._text,
+                         font=("Inter", 13, "bold"), fill="#fff")
+
+    def _click(self):
+        if self._cmd:
+            self._cmd()
 
 
 # ╔══════════════════════════════════════════════════════════════════════╗
