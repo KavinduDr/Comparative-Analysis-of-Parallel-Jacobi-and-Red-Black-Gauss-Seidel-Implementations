@@ -40,9 +40,9 @@ int jacobi_openmp(double *u, const double *f, int n, int max_iter, double tol, i
 
         double max_diff = 0.0;  /* Convergence metric: largest pointwise change in this sweep */
 
-        #pragma omp parallel for collapse(2) reduction(max:max_diff) schedule(static)  /* Parallelize both i and j loops; reduce max_diff across threads; static schedule divides work evenly */
-        for (int i = 0; i < n; i++) {  /* Loop over rows (distributed across threads) */
-            for (int j = 0; j < n; j++) {  /* Loop over columns (also distributed due to collapse(2)) */
+        #pragma omp parallel for collapse(2) reduction(max:max_diff) schedule(static)  /* Flatten 2D loop; each thread accumulates a local max_diff, merged after the region */
+        for (int i = 0; i < n; i++) {  /* Row index — work is split evenly (static schedule) */
+            for (int j = 0; j < n; j++) {  /* Column index — also distributed thanks to collapse(2) */
                 double left  = (j > 0)     ? u_old[i * n + (j - 1)] : 0.0;  /* Left neighbor from old values (boundary = 0) */
                 double right = (j < n - 1) ? u_old[i * n + (j + 1)] : 0.0;  /* Right neighbor from old values (boundary = 0) */
                 double up    = (i > 0)     ? u_old[(i - 1) * n + j]  : 0.0;  /* Upper neighbor from old values (boundary = 0) */
@@ -50,8 +50,8 @@ int jacobi_openmp(double *u, const double *f, int n, int max_iter, double tol, i
 
                 u[i * n + j] = (left + right + up + down + f[i * n + j]) / 4.0;  /* Compute new value using Jacobi formula */
 
-                double diff = fabs(u[i * n + j] - u_old[i * n + j]);  /* Compute absolute change at this point */
-                if (diff > max_diff) max_diff = diff;  /* Update thread-local max (reduced globally after loop) */
+                double diff = fabs(u[i * n + j] - u_old[i * n + j]);  /* Absolute pointwise change between iterations */
+                if (diff > max_diff) max_diff = diff;  /* Thread-local max; OpenMP reduces all locals after the region */
             }
         }
 
