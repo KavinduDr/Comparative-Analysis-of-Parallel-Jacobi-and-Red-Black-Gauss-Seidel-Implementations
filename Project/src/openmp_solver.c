@@ -28,17 +28,17 @@
  * @param num_threads Number of OpenMP threads to spawn
  * @return           Number of iterations actually performed
  */
-int jacobi_openmp(double *u, const double *f, int n, int max_iter, double tol, int num_threads) { /* OpenMP Jacobi solver with configurable thread count */
-    double *u_old = (double *)calloc((size_t)n * n, sizeof(double));  /* Allocate and zero-initialize array to store previous iteration values */
-    if (!u_old) { fprintf(stderr, "Memory allocation failed\n"); exit(1); }  /* Exit if allocation fails */
+int jacobi_openmp(double *u, const double *f, int n, int max_iter, double tol, int num_threads) { /* Entry: parallel Jacobi solver */
+    double *u_old = (double *)calloc((size_t)n * n, sizeof(double));  /* Temporary buffer holding the previous iteration's solution */
+    if (!u_old) { fprintf(stderr, "Memory allocation failed\n"); exit(1); }  /* Guard: abort on allocation failure */
 
-    omp_set_num_threads(num_threads);  /* Set the number of OpenMP threads to use */
+    omp_set_num_threads(num_threads);  /* Configure the thread pool size for subsequent parallel regions */
 
-    int iter;  /* Iteration counter */
-    for (iter = 0; iter < max_iter; iter++) {  /* Main iteration loop */
-        memcpy(u_old, u, (size_t)n * n * sizeof(double));  /* Copy current solution to old (sequential - needed before parallel region) */
+    int iter;  /* Counts completed sweeps */
+    for (iter = 0; iter < max_iter; iter++) {  /* Outer sweep loop: one full grid update per iteration */
+        memcpy(u_old, u, (size_t)n * n * sizeof(double));  /* Snapshot current solution; must complete before the parallel stencil pass */
 
-        double max_diff = 0.0;  /* Track the maximum change across all grid points */
+        double max_diff = 0.0;  /* Convergence metric: largest pointwise change in this sweep */
 
         #pragma omp parallel for collapse(2) reduction(max:max_diff) schedule(static)  /* Parallelize both i and j loops; reduce max_diff across threads; static schedule divides work evenly */
         for (int i = 0; i < n; i++) {  /* Loop over rows (distributed across threads) */
