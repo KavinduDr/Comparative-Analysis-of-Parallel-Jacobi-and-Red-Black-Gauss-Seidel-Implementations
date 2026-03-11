@@ -140,28 +140,28 @@ int redblack_gs_openmp(double *u, const double *f, int n, int max_iter, double t
     return iter;  /* Total full iterations executed */
 }
 
-int main(int argc, char *argv[]) {  /* Entry point */
-    int n           = (argc > 1) ? atoi(argv[1]) : DEFAULT_GRID_SIZE;  /* Parse grid size or use default (100) */
-    int max_iter    = (argc > 2) ? atoi(argv[2]) : MAX_ITERATIONS;     /* Parse max iterations or use default (10000) */
-    double tol      = (argc > 3) ? atof(argv[3]) : TOLERANCE;          /* Parse tolerance or use default (1e-6) */
-    int num_threads = (argc > 4) ? atoi(argv[4]) : 4;                  /* Parse number of threads or use default (4) */
+int main(int argc, char *argv[]) {  /* Program entry: parse CLI args, run both solvers, report results */
+    int n           = (argc > 1) ? atoi(argv[1]) : DEFAULT_GRID_SIZE;  /* Grid dimension; defaults to 100 if not supplied */
+    int max_iter    = (argc > 2) ? atoi(argv[2]) : MAX_ITERATIONS;     /* Upper bound on iterations; defaults to 10000 */
+    double tol      = (argc > 3) ? atof(argv[3]) : TOLERANCE;          /* Stopping criterion; defaults to 1e-6 */
+    int num_threads = (argc > 4) ? atoi(argv[4]) : 4;                  /* OpenMP thread count; defaults to 4 */
 
-    printf("Iterative Linear Solvers - OpenMP Implementation\n");  /* Print program header */
+    printf("Iterative Linear Solvers - OpenMP Implementation\n");  /* Banner line */
     printf("Grid: %d x %d, Max Iterations: %d, Tolerance: %.2e, Threads: %d\n\n",
-           n, n, max_iter, tol, num_threads);  /* Print configuration including thread count */
+           n, n, max_iter, tol, num_threads);  /* Display run parameters */
 
-    double *f       = (double *)malloc((size_t)n * n * sizeof(double));   /* Allocate RHS vector */
-    double *u_jac   = (double *)calloc((size_t)n * n, sizeof(double));   /* Allocate and zero-initialize Jacobi solution */
-    double *u_gs    = (double *)calloc((size_t)n * n, sizeof(double));   /* Allocate and zero-initialize GS solution */
-    double *u_exact = (double *)malloc((size_t)n * n * sizeof(double));  /* Allocate exact solution array */
+    double *f       = (double *)malloc((size_t)n * n * sizeof(double));   /* Right-hand side of the discretized PDE */
+    double *u_jac   = (double *)calloc((size_t)n * n, sizeof(double));   /* Jacobi solution vector, zero-initialized */
+    double *u_gs    = (double *)calloc((size_t)n * n, sizeof(double));   /* Red-Black GS solution vector, zero-initialized */
+    double *u_exact = (double *)malloc((size_t)n * n * sizeof(double));  /* Reference analytical solution */
 
-    if (!f || !u_jac || !u_gs || !u_exact) {  /* Check if any allocation failed */
-        fprintf(stderr, "Memory allocation failed\n");  /* Print error */
-        return 1;  /* Exit with error */
+    if (!f || !u_jac || !u_gs || !u_exact) {  /* Safety check: any allocation failure is fatal */
+        fprintf(stderr, "Memory allocation failed\n");  /* Report to stderr */
+        return 1;  /* Non-zero exit signals error */
     }
 
-    init_rhs(f, n);              /* Initialize RHS vector with problem-specific values */
-    exact_solution(u_exact, n);  /* Compute exact analytical solution */
+    init_rhs(f, n);              /* Populate RHS from the chosen test problem */
+    exact_solution(u_exact, n);  /* Build the closed-form reference solution */
 
     /* ---- Jacobi ---- */
     double t_start = get_time();  /* Record start time */
