@@ -66,21 +66,31 @@ int jacobi_openmp(double *u, const double *f, int n, int max_iter, double tol, i
 }
 
 /**
- * OpenMP Red-Black Gauss-Seidel Method
+ * redblack_gs_openmp - Parallel Red-Black Gauss-Seidel iterative solver
  *
- * Phase 1 (Red): All points where (i+j) is even are updated in parallel.
- *   Within this phase there are NO data dependencies (red neighbors are all black).
- * Phase 2 (Black): All points where (i+j) is odd are updated in parallel.
- *   Black neighbors are all red (already updated).
+ * Splits each iteration into two half-sweeps that can be parallelized:
+ *   Red sweep  – updates points where (i+j) is even; all their neighbors
+ *                are black (untouched), so no data races occur.
+ *   Black sweep – updates points where (i+j) is odd; all their neighbors
+ *                 are the freshly-updated red points.
  *
- * An implicit barrier between phases ensures correctness.
+ * An implicit OpenMP barrier between the two parallel regions guarantees
+ * that every red point is written before any black point reads it.
+ *
+ * @param u          Solution vector (n*n), updated in place
+ * @param f          Right-hand side vector (n*n)
+ * @param n          Grid dimension (n x n interior points)
+ * @param max_iter   Maximum number of iterations allowed
+ * @param tol        Convergence tolerance (max absolute change)
+ * @param num_threads Number of OpenMP threads to spawn
+ * @return           Number of iterations actually performed
  */
-int redblack_gs_openmp(double *u, const double *f, int n, int max_iter, double tol, int num_threads) { /* OpenMP Red-Black GS solver */
-    omp_set_num_threads(num_threads);  /* Set the number of OpenMP threads */
+int redblack_gs_openmp(double *u, const double *f, int n, int max_iter, double tol, int num_threads) { /* Parallel RB Gauss-Seidel entry point */
+    omp_set_num_threads(num_threads);  /* Configure thread pool for both red and black parallel regions */
 
-    int iter;  /* Iteration counter */
-    for (iter = 0; iter < max_iter; iter++) {  /* Main iteration loop */
-        double max_diff = 0.0;  /* Track maximum change across both phases */
+    int iter;  /* Counts completed full (red + black) sweeps */
+    for (iter = 0; iter < max_iter; iter++) {  /* Outer iteration loop */
+        double max_diff = 0.0;  /* Convergence metric: accumulated across both color phases */
 
         /* Phase 1: Update RED points */
         #pragma omp parallel for collapse(2) reduction(max:max_diff) schedule(static)  /* Parallelize red point updates; reduce max_diff; static scheduling */
