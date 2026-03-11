@@ -13,12 +13,20 @@
 #include <omp.h>                /* OpenMP API: parallel regions, thread management, synchronization primitives */
 
 /**
- * OpenMP Jacobi Method
+ * jacobi_openmp - Parallel Jacobi iterative solver
  *
- * The outer loop over grid rows is parallelized with OpenMP.
- * Each thread computes a subset of rows independently since Jacobi
- * only reads from the old array (no data dependencies within an iteration).
- * A reduction is used to compute the global maximum change.
+ * Distributes row computations across OpenMP threads using a collapse(2)
+ * directive. Because Jacobi reads exclusively from the previous iteration's
+ * values (u_old), there are no write-write or read-write conflicts between
+ * threads. A max-reduction determines the global convergence metric.
+ *
+ * @param u          Solution vector (n*n), updated in place
+ * @param f          Right-hand side vector (n*n)
+ * @param n          Grid dimension (n x n interior points)
+ * @param max_iter   Maximum number of iterations allowed
+ * @param tol        Convergence tolerance (max absolute change)
+ * @param num_threads Number of OpenMP threads to spawn
+ * @return           Number of iterations actually performed
  */
 int jacobi_openmp(double *u, const double *f, int n, int max_iter, double tol, int num_threads) { /* OpenMP Jacobi solver with configurable thread count */
     double *u_old = (double *)calloc((size_t)n * n, sizeof(double));  /* Allocate and zero-initialize array to store previous iteration values */
