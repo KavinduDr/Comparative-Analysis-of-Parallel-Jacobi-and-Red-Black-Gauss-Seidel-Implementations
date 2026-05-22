@@ -1,0 +1,4 @@
+./Project/src/*.o
+/Project/src/serial
+/Project/src/openmp_solver
+/Project/src/pthreads_solver
