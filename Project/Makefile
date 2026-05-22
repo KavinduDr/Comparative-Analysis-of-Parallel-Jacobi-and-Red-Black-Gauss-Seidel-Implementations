@@ -9,105 +9,112 @@
 #   make mpi           - Build MPI version
 #   make hybrid        - Build Hybrid MPI+OpenMP version
 #   make cuda          - Build CUDA version
+#   make hybrid_cuda   - Build Hybrid MPI+CUDA version
 #   make all_cpu       - Build all CPU versions (serial, openmp, pthreads, mpi, hybrid)
-#   make all           - Build everything including CUDA
+#   make all           - Build everything including CUDA and Hybrid CUDA
 #   make clean         - Remove all binaries
 #   make run_all       - Run all benchmarks
 # ============================================================================
 
 # Compilers
-CC       = gcc      # GNU C compiler for serial, OpenMP, and Pthreads builds
-MPICC    = mpicc    # MPI C compiler wrapper (uses underlying CC with MPI flags)
-NVCC     = nvcc     # NVIDIA CUDA compiler for GPU code
+CC       = gcc
+MPICC    = mpicc
+NVCC     = nvcc
 
 # Flags
-CFLAGS   = -O2 -Wall -Wextra -I include  # Optimization level 2, enable all+extra warnings, add include path
-LDFLAGS  = -lm                            # Link the math library (required for sin, sqrt, fabs, etc.)
-OMP_FLAG = -fopenmp                       # Enable OpenMP support in GCC
-PTH_FLAG = -lpthread                      # Link POSIX threads library
-NVFLAGS  = -O2 -arch=sm_50               # CUDA: optimization level 2, target GPU compute capability 5.0
+CFLAGS   = -O2 -Wall -Wextra -I include
+LDFLAGS  = -lm
+OMP_FLAG = -fopenmp
+PTH_FLAG = -lpthread
+NVFLAGS  = -O2 -arch=sm_50
 
 # Output directory
-BIN = bin  # Directory where compiled binaries are placed
+BIN_DIR = bin
 
 # Targets - define the output binary paths
-SERIAL   = $(BIN)/serial            # Serial implementation binary
-OPENMP   = $(BIN)/openmp_solver     # OpenMP implementation binary
-PTHREADS = $(BIN)/pthreads_solver   # Pthreads implementation binary
-MPI      = $(BIN)/mpi_solver        # MPI implementation binary
-HYBRID   = $(BIN)/hybrid_solver     # Hybrid MPI+OpenMP implementation binary
-CUDA     = $(BIN)/cuda_solver       # CUDA GPU implementation binary
+SERIAL   = $(BIN_DIR)/serial
+OPENMP   = $(BIN_DIR)/openmp_solver
+PTHREADS = $(BIN_DIR)/pthreads_solver
+MPI      = $(BIN_DIR)/mpi_solver
+HYBRID   = $(BIN_DIR)/hybrid_solver
+CUDA     = $(BIN_DIR)/cuda_solver
+HYBRID_CUDA = $(BIN_DIR)/hybrid_cuda_solver
 
-.PHONY: all all_cpu serial openmp pthreads mpi hybrid cuda clean run_all  # Declare targets that are not actual files
+.PHONY: all all_cpu serial openmp pthreads mpi hybrid cuda hybrid_cuda clean run_all
 
 # Default: build all CPU targets
-all_cpu: serial openmp pthreads mpi hybrid  # Build all CPU-based implementations
+all_cpu: serial openmp pthreads mpi hybrid
 
-all: all_cpu cuda  # Build everything: all CPU versions plus CUDA
+all: all_cpu cuda hybrid_cuda
 
-$(BIN):            # Rule to create the bin directory if it doesn't exist
-	mkdir -p $(BIN)  # Create bin directory (and parent dirs if needed)
+$(BIN_DIR):
+	mkdir -p $(BIN_DIR)
 
 # ----- Serial -----
-serial: $(SERIAL)                              # Target alias for serial build
-$(SERIAL): src/serial.c include/common.h | $(BIN)  # Build serial: depends on source and header, bin dir must exist
-	$(CC) $(CFLAGS) -o $@ src/serial.c $(LDFLAGS)  # Compile serial.c with standard flags and link math library
+serial: $(SERIAL)
+$(SERIAL): src/serial.c include/common.h | $(BIN_DIR)
+	$(CC) $(CFLAGS) -o $@ src/serial.c $(LDFLAGS)
 
 # ----- OpenMP -----
-openmp: $(OPENMP)                                        # Target alias for OpenMP build
-$(OPENMP): src/openmp_solver.c include/common.h | $(BIN)  # Build OpenMP: depends on source, header, and bin dir
-	$(CC) $(CFLAGS) $(OMP_FLAG) -o $@ src/openmp_solver.c $(LDFLAGS)  # Compile with OpenMP flag (-fopenmp) enabled
+openmp: $(OPENMP)
+$(OPENMP): src/openmp_solver.c include/common.h | $(BIN_DIR)
+	$(CC) $(CFLAGS) $(OMP_FLAG) -o $@ src/openmp_solver.c $(LDFLAGS)
 
 # ----- Pthreads -----
-pthreads: $(PTHREADS)                                          # Target alias for Pthreads build
-$(PTHREADS): src/pthreads_solver.c include/common.h | $(BIN)   # Build Pthreads: depends on source, header, and bin dir
-	$(CC) $(CFLAGS) -o $@ src/pthreads_solver.c $(LDFLAGS) $(PTH_FLAG)  # Compile and link with pthread library
+pthreads: $(PTHREADS)
+$(PTHREADS): src/pthreads_solver.c include/common.h | $(BIN_DIR)
+	$(CC) $(CFLAGS) -o $@ src/pthreads_solver.c $(LDFLAGS) $(PTH_FLAG)
 
 # ----- MPI -----
-mpi: $(MPI)                                          # Target alias for MPI build
-$(MPI): src/mpi_solver.c include/common.h | $(BIN)   # Build MPI: depends on source, header, and bin dir
-	$(MPICC) $(CFLAGS) -o $@ src/mpi_solver.c $(LDFLAGS)  # Compile with MPI compiler wrapper (handles MPI includes/libs)
+mpi: $(MPI)
+$(MPI): src/mpi_solver.c include/common.h | $(BIN_DIR)
+	$(MPICC) $(CFLAGS) -o $@ src/mpi_solver.c $(LDFLAGS)
 
 # ----- Hybrid MPI+OpenMP -----
-hybrid: $(HYBRID)                                          # Target alias for Hybrid build
-$(HYBRID): src/hybrid_solver.c include/common.h | $(BIN)   # Build Hybrid: depends on source, header, and bin dir
-	$(MPICC) $(CFLAGS) $(OMP_FLAG) -o $@ src/hybrid_solver.c $(LDFLAGS)  # Compile with MPI compiler and OpenMP flag
+hybrid: $(HYBRID)
+$(HYBRID): src/hybrid_solver.c include/common.h | $(BIN_DIR)
+	$(MPICC) $(CFLAGS) $(OMP_FLAG) -o $@ src/hybrid_solver.c $(LDFLAGS)
 
 # ----- CUDA -----
-cuda: $(CUDA)                              # Target alias for CUDA build
-$(CUDA): src/cuda_solver.cu | $(BIN)       # Build CUDA: depends on source file and bin dir
-	$(NVCC) $(NVFLAGS) -o $@ src/cuda_solver.cu -lm  # Compile CUDA source with nvcc and link math library
+cuda: $(CUDA)
+$(CUDA): src/cuda_solver.cu | $(BIN_DIR)
+	$(NVCC) $(NVFLAGS) -o $@ src/cuda_solver.cu -lm
+
+# ----- Hybrid MPI+CUDA -----
+hybrid_cuda: $(HYBRID_CUDA)
+$(HYBRID_CUDA): src/hybrid_cuda_solver.cu | $(BIN_DIR)
+	$(NVCC) $(NVFLAGS) $$(mpicc --showme:compile) -o $@ src/hybrid_cuda_solver.cu $$(mpicc --showme:link) -lm
 
 # ----- Clean -----
-clean:             # Remove all compiled binaries
-	rm -rf $(BIN)  # Recursively delete the bin directory and all contents
+clean:
+	rm -rf $(BIN_DIR)
 
 # ----- Run all benchmarks -----
-GRID  ?= 200    # Default grid size for benchmarks (overridable: make run_all GRID=500)
-ITERS ?= 5000   # Default max iterations for benchmarks (overridable)
-TOL   ?= 1e-6   # Default convergence tolerance for benchmarks (overridable)
+GRID  ?= 200
+ITERS ?= 5000
+TOL   ?= 1e-6
 
-run_all: all_cpu                                          # Run benchmarks: first build all CPU targets
-	@echo ""                                               # Print blank line for readability
-	@echo "===== Running Serial ====="                     # Print section header
-	$(SERIAL) $(GRID) $(ITERS) $(TOL)                      # Run serial solver with benchmark parameters
-	@echo ""                                               # Print blank line
-	@echo "===== Running OpenMP (2 threads) ====="         # Print section header
-	$(OPENMP) $(GRID) $(ITERS) $(TOL) 2                    # Run OpenMP with 2 threads
-	@echo "===== Running OpenMP (4 threads) ====="         # Print section header
-	$(OPENMP) $(GRID) $(ITERS) $(TOL) 4                    # Run OpenMP with 4 threads
-	@echo ""                                               # Print blank line
-	@echo "===== Running Pthreads (2 threads) ====="       # Print section header
-	$(PTHREADS) $(GRID) $(ITERS) $(TOL) 2                  # Run Pthreads with 2 threads
-	@echo "===== Running Pthreads (4 threads) ====="       # Print section header
-	$(PTHREADS) $(GRID) $(ITERS) $(TOL) 4                  # Run Pthreads with 4 threads
-	@echo ""                                               # Print blank line
-	@echo "===== Running MPI (2 processes) ====="          # Print section header
-	mpirun --oversubscribe -np 2 $(MPI) $(GRID) $(ITERS) $(TOL)   # Run MPI with 2 processes (oversubscribe allows more procs than cores)
-	@echo "===== Running MPI (4 processes) ====="          # Print section header
-	mpirun --oversubscribe -np 4 $(MPI) $(GRID) $(ITERS) $(TOL)   # Run MPI with 4 processes
-	@echo ""                                               # Print blank line
-	@echo "===== Running Hybrid (2 procs x 2 threads) =====" # Print section header
-	mpirun --oversubscribe -np 2 $(HYBRID) $(GRID) $(ITERS) $(TOL) 2  # Run Hybrid with 2 MPI processes, each using 2 OpenMP threads
-	@echo ""                                               # Print blank line
-	@echo "All benchmarks complete."                       # Print completion message
+run_all: all_cpu
+	@echo ""
+	@echo "===== Running Serial ====="
+	$(SERIAL) $(GRID) $(ITERS) $(TOL)
+	@echo ""
+	@echo "===== Running OpenMP (2 threads) ====="
+	$(OPENMP) $(GRID) $(ITERS) $(TOL) 2
+	@echo "===== Running OpenMP (4 threads) ====="
+	$(OPENMP) $(GRID) $(ITERS) $(TOL) 4
+	@echo ""
+	@echo "===== Running Pthreads (2 threads) ====="
+	$(PTHREADS) $(GRID) $(ITERS) $(TOL) 2
+	@echo "===== Running Pthreads (4 threads) ====="
+	$(PTHREADS) $(GRID) $(ITERS) $(TOL) 4
+	@echo ""
+	@echo "===== Running MPI (2 processes) ====="
+	mpirun --oversubscribe -np 2 $(MPI) $(GRID) $(ITERS) $(TOL)
+	@echo "===== Running MPI (4 processes) ====="
+	mpirun --oversubscribe -np 4 $(MPI) $(GRID) $(ITERS) $(TOL)
+	@echo ""
+	@echo "===== Running Hybrid (2 procs x 2 threads) ====="
+	mpirun --oversubscribe -np 2 $(HYBRID) $(GRID) $(ITERS) $(TOL) 2
+	@echo ""
+	@echo "All benchmarks complete."
