@@ -4,3 +4,4 @@
 /Project/src/pthreads_solver
 /Project/*.txt
 /Project/bin/*
+.venv
