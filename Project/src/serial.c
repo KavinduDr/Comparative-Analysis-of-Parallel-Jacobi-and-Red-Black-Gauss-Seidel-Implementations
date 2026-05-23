@@ -161,6 +161,9 @@ int main(int argc, char *argv[]) {  /* Entry point: argc=argument count, argv=ar
     double rmse_jac_vs_gs = compute_rmse(u_jac, u_gs, n);  /* Compute RMSE between Jacobi and GS solutions */
     printf("RMSE (Jacobi vs Red-Black GS): %.2e\n", rmse_jac_vs_gs);  /* Print how closely the two methods agree */
 
+    save_solution("serial_jacobi.txt", u_jac, n);
+    save_solution("serial_rbgs.txt", u_gs, n);
+
     /* Cleanup */
     free(f);        /* Free the RHS vector */
     free(u_jac);    /* Free the Jacobi solution array */

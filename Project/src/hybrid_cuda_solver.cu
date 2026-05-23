@@ -134,6 +134,22 @@ double gpu_max_reduce(double *d_array, int total) {
 
 /* ============ Host Helpers ============ */
 
+void save_solution(const char *filename, const double *u, int n) {
+    FILE *fp = fopen(filename, "w");
+    if (!fp) {
+        fprintf(stderr, "Failed to open %s for writing\n", filename);
+        return;
+    }
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            fprintf(fp, "%.12e ", u[i * n + j]);
+        }
+        fprintf(fp, "\n");
+    }
+    fclose(fp);
+    printf("Saved solution to %s\n", filename);
+}
+
 void init_rhs(double *f, int n) {
     double h = 1.0 / (n + 1);
     for (int i = 0; i < n; i++) {
@@ -383,6 +399,9 @@ int main(int argc, char *argv[]) {
 
         double rmse_jac_vs_gs = compute_rmse(u_global_jac, u_global_gs, n);
         printf("RMSE (Jacobi vs Red-Black GS): %.2e\n", rmse_jac_vs_gs);
+
+        save_solution("hybrid_cuda_jacobi.txt", u_global_jac, n);
+        save_solution("hybrid_cuda_rbgs.txt", u_global_gs, n);
 
         free(f_global);
         free(u_global_jac);

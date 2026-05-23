@@ -258,6 +258,9 @@ int main(int argc, char *argv[]) {  /* Entry point */
         double rmse_jac_vs_gs = compute_rmse(u_global_jac, u_global_gs, n);  /* Compare the two solutions */
         printf("RMSE (Jacobi vs Red-Black GS): %.2e\n", rmse_jac_vs_gs);    /* Print comparison */
 
+        save_solution("hybrid_jacobi.txt", u_global_jac, n);
+        save_solution("hybrid_rbgs.txt", u_global_gs, n);
+
         free(f_global);      /* Free global RHS */
         free(u_global_jac);  /* Free global Jacobi result */
         free(u_global_gs);   /* Free global GS result */
