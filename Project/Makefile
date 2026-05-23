@@ -94,7 +94,7 @@ GRID  ?= 200
 ITERS ?= 5000
 TOL   ?= 1e-6
 
-run_all: all_cpu
+run_all: all
 	@echo ""
 	@echo "===== Running Serial ====="
 	$(SERIAL) $(GRID) $(ITERS) $(TOL)
@@ -116,5 +116,11 @@ run_all: all_cpu
 	@echo ""
 	@echo "===== Running Hybrid (2 procs x 2 threads) ====="
 	mpirun --oversubscribe -np 2 $(HYBRID) $(GRID) $(ITERS) $(TOL) 2
+	@echo ""
+	@echo "===== Running CUDA ====="
+	$(CUDA) $(GRID) $(ITERS) $(TOL)
+	@echo ""
+	@echo "===== Running Hybrid MPI+CUDA (2 procs) ====="
+	mpirun --oversubscribe -np 2 $(HYBRID_CUDA) $(GRID) $(ITERS) $(TOL)
 	@echo ""
 	@echo "All benchmarks complete."
