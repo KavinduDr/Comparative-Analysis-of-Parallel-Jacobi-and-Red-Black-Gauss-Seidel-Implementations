@@ -226,20 +226,13 @@ class FormGroup(tk.Frame):
                                    fg=C["fg"], insertbackground=C["fg"],
                                    relief="flat", highlightthickness=0)
             
-        # Place widget carefully inside the canvas
-        self.widget_win = self.box.create_window(8, 18, window=self.widget, anchor="w")
+        # Use .place() over the Canvas instead of create_window() to avoid macOS Combobox clipping bugs!
+        self.widget.place(relx=0, rely=0.5, x=8, anchor="w", relwidth=1.0, width=-16)
         
         # Focus styling
         self.widget.bind("<FocusIn>", lambda e: self.box.set_focus(True))
         self.widget.bind("<FocusOut>", lambda e: self.box.set_focus(False))
         
-        # For canvas resizing
-        self.box.bind("<Configure>", self._resize, add="+")
-
-    def _resize(self, evt):
-        self.box.coords(self.widget_win, 8, evt.height // 2)
-        self.box.itemconfigure(self.widget_win, width=evt.width - 16)
-
     def get(self):
         return self.var.get()
 
@@ -302,6 +295,11 @@ class App(tk.Tk):
         self._build_header()
         self._build_tabs()
         self._build_status_bar()
+
+        # Fix for macOS: Force the window to the foreground
+        self.lift()
+        self.attributes('-topmost', True)
+        self.after_idle(self.attributes, '-topmost', False)
 
     def _setup_styles(self):
         s = ttk.Style(self)
