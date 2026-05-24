@@ -63,6 +63,8 @@ Notes
 ## Contributions & Credits
 
 ### **Rathnayaka I.G.T.A. (EG/2021/4754 — Tharanga Anuradha)**
+- **Core OpenMP Solver Implementation (`openmp_solver.c`)**: Designed and implemented the primary multi-threaded solver structures for Jacobi (using `#pragma omp parallel for collapse(2)`) and Red-Black Gauss-Seidel color phases (separated red/black parallel updates), incorporating early convergence detection and memory mapping.
+- **macOS Pthreads Barrier Support (`pthreads_solver.c`)**: Engineered the custom POSIX-compliant thread barrier shim (`pthread_barrier_t`) enabling smooth barrier synchronization natively on macOS (which lacks standard Pthreads barriers), alongside thread row partitioning and worker architectures.
 - **Interactive GUI Desktop Application**: Fully designed and implemented the Tkinter + Matplotlib visualization dashboard (`Project/experiment_app.py`) enabling users to interactively test single solver runs, thread scaling studies (speedup/efficiency plots), and grid scalability analysis.
 - **macOS Environment Adaptation**: Customized the project `Makefile` to fully support Homebrew GCC compiler environments (`gcc-14`), resolving OpenMP linking and compilation challenges natively on Apple Silicon.
 - **System Integration & Conflict Merging**: Successfully resolved branch conflicts to safely merge high-tier MPI and CUDA parallel solvers with the front-end interface, ensuring a unified cross-platform project structure.

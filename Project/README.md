@@ -364,6 +364,8 @@ On some systems, you may need to add `-D_XOPEN_SOURCE=600` to CFLAGS in the Make
 ## Individual Contributions & Deliverables
 
 ### **Rathnayaka I.G.T.A. (EG/2021/4754 — Tharanga Anuradha)**
+- **Core OpenMP Parallel Solvers (`openmp_solver.c`)**: Programmed the multi-threaded parallel execution flow for the Jacobi solver (using loop collapse) and Red-Black Gauss-Seidel solvers (segmented red and black multi-threaded phases) with dynamic thread allocation, CLI argument handling, and convergence reduction patterns.
+- **POSIX Threads macOS Barrier Shim (`pthreads_solver.c`)**: Designed and successfully implemented a custom POSIX thread barrier (`pthread_barrier_t`) that supports macOS natively, bypassing default Apple OS limitations, alongside worker thread block partitioning.
 - **Interactive Python Tkinter/Matplotlib Desktop GUI Application (`experiment_app.py`)**: Built the entire experiment laboratory dashboard to test solvers asynchronously, conduct thread scaling benchmarks, and plot speedup, performance, and complexity growth charts in real time.
 - **macOS Adaptation & Compiler Integration**: Configured Makefile compilation suites specifically for macOS Apple Silicon compatibility (targeting Homebrew `gcc-14` and handling OpenMP multi-threading linkages cleanly).
 - **HPC Project System Integration**: Merged MPI, CUDA, Hybrid, and Pthreads implementations into the unified codebase, resolving merge conflicts and verifying complete pipeline build accuracy.

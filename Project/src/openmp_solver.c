@@ -1,6 +1,9 @@
 /**
  * openmp_solver.c - OpenMP implementations of Jacobi and Red-Black Gauss-Seidel
  *
+ * Core OpenMP Parallel Design & Loop Parallelization by:
+ *   Rathnayaka I.G.T.A. (EG/2021/4754 — Tharanga Anuradha)
+ *
  * Shared memory parallelization using OpenMP directives.
  * Parallelizes the loop iterations across threads.
  *
