@@ -358,3 +358,12 @@ int main(){printf("Threads: %d\n",omp_get_max_threads());return 0;}'
 
 ### Pthreads barrier not available
 On some systems, you may need to add `-D_XOPEN_SOURCE=600` to CFLAGS in the Makefile.
+
+---
+
+## Individual Contributions & Deliverables
+
+### **Rathnayaka I.G.T.A. (EG/2021/4754 — Tharanga Anuradha)**
+- **Interactive Python Tkinter/Matplotlib Desktop GUI Application (`experiment_app.py`)**: Built the entire experiment laboratory dashboard to test solvers asynchronously, conduct thread scaling benchmarks, and plot speedup, performance, and complexity growth charts in real time.
+- **macOS Adaptation & Compiler Integration**: Configured Makefile compilation suites specifically for macOS Apple Silicon compatibility (targeting Homebrew `gcc-14` and handling OpenMP multi-threading linkages cleanly).
+- **HPC Project System Integration**: Merged MPI, CUDA, Hybrid, and Pthreads implementations into the unified codebase, resolving merge conflicts and verifying complete pipeline build accuracy.

@@ -58,3 +58,12 @@ Notes
 - MPI runs use `mpirun` (examples in `Makefile` use `mpirun --oversubscribe -np N`).
 - The `cuda` target requires compatible NVIDIA GPU and `nvcc` configured in PATH.
 
+---
+
+## Contributions & Credits
+
+### **Rathnayaka I.G.T.A. (EG/2021/4754 — Tharanga Anuradha)**
+- **Interactive GUI Desktop Application**: Fully designed and implemented the Tkinter + Matplotlib visualization dashboard (`Project/experiment_app.py`) enabling users to interactively test single solver runs, thread scaling studies (speedup/efficiency plots), and grid scalability analysis.
+- **macOS Environment Adaptation**: Customized the project `Makefile` to fully support Homebrew GCC compiler environments (`gcc-14`), resolving OpenMP linking and compilation challenges natively on Apple Silicon.
+- **System Integration & Conflict Merging**: Successfully resolved branch conflicts to safely merge high-tier MPI and CUDA parallel solvers with the front-end interface, ensuring a unified cross-platform project structure.
+
