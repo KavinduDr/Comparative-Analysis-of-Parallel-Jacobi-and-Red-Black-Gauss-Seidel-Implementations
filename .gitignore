@@ -5,3 +5,4 @@
 /Project/*.txt
 /Project/bin/*
 .venv
+/Project/benchmark_results/
