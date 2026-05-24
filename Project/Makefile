@@ -16,9 +16,9 @@
 #   make run_all       - Run all benchmarks
 # ============================================================================
 
-# Compilers
-CC       = gcc
-MPICC    = mpicc
+# Compilers (using GCC-14 for OpenMP support on macOS)
+CC       = gcc-14
+MPICC    = OMPI_CC=gcc-14 MPICH_CC=gcc-14 mpicc
 NVCC     = nvcc
 
 # Flags
@@ -83,7 +83,7 @@ $(CUDA): src/cuda_solver.cu | $(BIN_DIR)
 # ----- Hybrid MPI+CUDA -----
 hybrid_cuda: $(HYBRID_CUDA)
 $(HYBRID_CUDA): src/hybrid_cuda_solver.cu | $(BIN_DIR)
-	$(NVCC) $(NVFLAGS) $$(mpicc --showme:compile) -o $@ src/hybrid_cuda_solver.cu $$(mpicc --showme:link) -lm
+	$(NVCC) $(NVFLAGS) $(shell mpicc --showme:compile) -o $@ src/hybrid_cuda_solver.cu $(shell mpicc --showme:link) -lm
 
 # ----- Clean -----
 clean:
@@ -94,7 +94,7 @@ GRID  ?= 200
 ITERS ?= 5000
 TOL   ?= 1e-6
 
-run_all: all
+run_all: all_cpu
 	@echo ""
 	@echo "===== Running Serial ====="
 	$(SERIAL) $(GRID) $(ITERS) $(TOL)
@@ -116,11 +116,5 @@ run_all: all
 	@echo ""
 	@echo "===== Running Hybrid (2 procs x 2 threads) ====="
 	mpirun --oversubscribe -np 2 $(HYBRID) $(GRID) $(ITERS) $(TOL) 2
-	@echo ""
-	@echo "===== Running CUDA ====="
-	$(CUDA) $(GRID) $(ITERS) $(TOL)
-	@echo ""
-	@echo "===== Running Hybrid MPI+CUDA (2 procs) ====="
-	mpirun --oversubscribe -np 2 $(HYBRID_CUDA) $(GRID) $(ITERS) $(TOL)
 	@echo ""
 	@echo "All benchmarks complete."
