@@ -123,4 +123,24 @@ static inline void print_results(const char *method, const char *impl,
     printf("=============================================================\n\n");     /* Print closing separator line */
 }
 
+/**
+ * Save the final solution grid to a text file
+ * Can be used to compare results across different implementations (Serial vs MPI, etc.)
+ */
+static inline void save_solution(const char *filename, const double *u, int n) {
+    FILE *fp = fopen(filename, "w");
+    if (!fp) {
+        fprintf(stderr, "Failed to open %s for writing\n", filename);
+        return;
+    }
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            fprintf(fp, "%.12e ", u[i * n + j]);
+        }
+        fprintf(fp, "\n");
+    }
+    fclose(fp);
+    printf("Saved solution to %s\n", filename);
+}
+
 #endif /* COMMON_H */  /* End of include guard */

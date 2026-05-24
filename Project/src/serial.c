@@ -464,6 +464,9 @@ int main(int argc, char *argv[]) {
     double rmse_jac_vs_gs = compute_rmse(u_jac, u_gs, n);
     printf("RMSE (Jacobi vs Red-Black GS): %.2e\n", rmse_jac_vs_gs);
 
+    save_solution("serial_jacobi.txt", u_jac, n);
+    save_solution("serial_rbgs.txt", u_gs, n);
+
     /*
      * Free all dynamically allocated memory.
      * Good practice to avoid memory leaks, even though the OS would
