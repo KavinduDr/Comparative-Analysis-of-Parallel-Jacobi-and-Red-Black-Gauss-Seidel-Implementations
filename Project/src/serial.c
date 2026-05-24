@@ -464,8 +464,13 @@ int main(int argc, char *argv[]) {
     double rmse_jac_vs_gs = compute_rmse(u_jac, u_gs, n);
     printf("RMSE (Jacobi vs Red-Black GS): %.2e\n", rmse_jac_vs_gs);
 
-    save_solution("serial_jacobi.txt", u_jac, n);
-    save_solution("serial_rbgs.txt", u_gs, n);
+    /*
+     * Save the final numerical solutions to text files.
+     * These files can be used later for plotting, visual inspection, or
+     * comparing the serial baseline against OpenMP/MPI/CUDA implementations.
+     */
+    save_solution("serial_jacobi.txt", u_jac, n);  /* write Jacobi solution grid */
+    save_solution("serial_rbgs.txt", u_gs, n);     /* write Red-Black GS solution grid */
 
     /*
      * Free all dynamically allocated memory.
