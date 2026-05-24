@@ -5,9 +5,6 @@ HPC Solver Experiment Desktop Application
 Interactive Tkinter + Matplotlib GUI for running and comparing
 parallel Jacobi and Red-Black Gauss-Seidel solvers.
 
-Developer: Rathnayaka I.G.T.A. (EG/2021/4754 — Tharanga Anuradha)
-Coursework Project: EE7218/EC7207 High Performance Computing
-
 Usage:  python3 experiment_app.py
 """
 

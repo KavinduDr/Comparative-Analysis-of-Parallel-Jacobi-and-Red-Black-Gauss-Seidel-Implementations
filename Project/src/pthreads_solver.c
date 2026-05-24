@@ -1,9 +1,6 @@
 /**
  * pthreads_solver.c - POSIX Threads implementations of Jacobi and Red-Black GS
  *
- * Core Multi-threading Barrier Shim & Thread Design by:
- *   Rathnayaka I.G.T.A. (EG/2021/4754 — Tharanga Anuradha)
- *
  * Shared memory parallelization using POSIX threads with barrier synchronization.
  * Each thread is assigned a contiguous block of rows to process.
  *
