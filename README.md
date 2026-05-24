@@ -53,6 +53,14 @@ Run
 
   `./bin/serial 200 5000 1e-6`
 
+- Launch the Interactive Visualization GUI (Python):
+
+  ```bash
+  cd Project
+  python experiment_app.py
+  ```
+  *(Note: Requires Python 3, `matplotlib` and `tkinter`. On Windows, the app automatically executes the Linux solver binaries via WSL)*
+
 Notes
 - `Makefile` default parameters: `GRID=200`, `ITERS=5000`, `TOL=1e-6` (override with `make run_all GRID=500 ITERS=10000`).
 - MPI runs use `mpirun` (examples in `Makefile` use `mpirun --oversubscribe -np N`).
@@ -69,3 +77,6 @@ Notes
 - **macOS Environment Adaptation**: Customized the project `Makefile` to fully support Homebrew GCC compiler environments (`gcc-14`), resolving OpenMP linking and compilation challenges natively on Apple Silicon.
 - **System Integration & Conflict Merging**: Successfully resolved branch conflicts to safely merge high-tier MPI and CUDA parallel solvers with the front-end interface, ensuring a unified cross-platform project structure.
 
+### **Rathnayaka R.M.K.D. (EG/2021/4758)**
+- **CUDA Solver Implementation (`cuda_solver.cu`)**: Designed and developed the GPU-accelerated parallel solvers using CUDA. Implemented device kernels for massively parallel grid processing for both Jacobi and Red-Black Gauss-Seidel iterations, significantly reducing computation times for large domains.
+- **Hybrid MPI+CUDA Implementation (`hybrid_cuda_solver.cu`)**: Engineered the advanced hybrid parallel solver combining distributed-memory MPI with GPU acceleration. Orchestrated ghost-row communication across MPI processes and localized chunk computation on GPUs to maximize throughput in high-performance cluster environments.
